@@ -1,28 +1,40 @@
 #!/bin/bash
 
-PID_FILE="/tmp/monitor.pid"
-LOG_DIR="$HOME/Documents/psid_sber/lab1"
+PID_FILE="$HOME/monitor.pid"
+LOG_DIR="monitorings"
+mkdir -p "$LOG_DIR"
 
 monitor() {
+    current_date=$(date +'%Y-%m-%d')
+    log_file="$LOG_DIR/monitoring_${current_date}.csv"
+
+    if [ ! -f "$log_file" ]; then
+        echo "Timestamp,Disk Usage (%),Free Inodes" > "$log_file"
+    fi
+
     while true; do
-        timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-        date_for_filename=$(date +"%Y-%m-%d")
-        log_file="${LOG_DIR}/monitor_${timestamp}_${date_for_filename}.csv"
+        timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+        new_date=$(date +'%Y-%m-%d')
 
-        df_output=$(df -h)
-        inode_output=$(df -i)
+        if [ "$new_date" != "$current_date" ]; then
+            current_date=$new_date
+            log_file="$LOG_DIR/monitoring_${current_date}.csv"
+            echo "Timestamp,Disk Usage (%),Free Inodes" > "$log_file"
+        fi
 
-        echo "Timestamp, Disk Usage, Inode Usage" > "$log_file"
-        echo "$timestamp, $df_output, $inode_output" >> "$log_file"
+        disk_usage=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+        free_inodes=$(df -i / | tail -1 | awk '{print $4}')
 
-        sleep 86400 # 24 часа
+        echo "$timestamp,$disk_usage,$free_inodes" >> "$log_file"
+        
+        sleep 20
     done
 }
 
 case "$1" in
     START)
         if [ -f "$PID_FILE" ]; then
-            echo "Мониторинг уже запущен с PID $(cat $PID_FILE)"
+            echo "Мониторинг уже запущен с PID $(cat "$PID_FILE")"
             exit 1
         fi
         monitor &
@@ -41,7 +53,7 @@ case "$1" in
     
     STATUS)
         if [ -f "$PID_FILE" ]; then
-            echo "Мониторинг запущен с PID $(cat $PID_FILE)"
+            echo "Мониторинг запущен с PID $(cat "$PID_FILE")"
         else
             echo "Мониторинг не запущен"
         fi
@@ -52,4 +64,3 @@ case "$1" in
         exit 1
         ;;
 esac
-
