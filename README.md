@@ -1,1 +1,3 @@
-# PSID_Sber
+# Запуск
+docker-compose up --build
+

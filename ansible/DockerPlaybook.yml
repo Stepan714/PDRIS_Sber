@@ -1,0 +1,13 @@
+---
+- name: Deploy application
+  hosts: localhost
+  tasks:
+    - name: Run Docker container
+      docker_container:
+        name: app
+        image: task2
+        ports:
+         - "80:80"
+        command: python3 main.py
+
+
