@@ -1,0 +1,70 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1468.vcf4f5ee92395">
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3996.va_f5c1799f978">
+    <script>pipeline {
+    agent any
+
+    stages {
+        stage(&apos;Checkout&apos;) {
+            steps {
+                git &apos;https://your-repo-url.git&apos;
+            }
+        }
+
+        stage(&apos;Build&apos;) {
+            steps {
+                sh &apos;pip install -r requirements.txt&apos;
+            }
+        }
+
+        stage(&apos;Test&apos;) {
+            steps {
+                sh &apos;pytest --junitxml=test-results.xml&apos;
+            }
+        }
+
+        stage(&apos;SonarQube analysis&apos;) {
+            environment {
+                scannerHome = tool &apos;SonarQube Scanner&apos;
+            }
+            steps {
+                withSonarQubeEnv(&apos;SonarQube&apos;) {
+                    sh &quot;${scannerHome}/bin/sonar-scanner&quot;
+                }
+            }
+        }
+
+        stage(&apos;Check Quality Gate&apos;) {
+            steps {
+                script {
+                    def qg = waitForQualityGate()
+                    if (qg.status != &apos;OK&apos;) {
+                        error &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Deploy&apos;) {
+            steps {
+                ansiblePlaybook credentialsId: &apos;your-ansible-credentials-id&apos;,
+                                playbook: &apos;deploy.yml&apos;
+            }
+        }
+    }
+
+    post {
+        always {
+            junit &apos;test-results.xml&apos;
+            archiveArtifacts artifacts: &apos;test-results.xml&apos;, allowEmptyArchive: true
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
