@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://your-repo-url.git'
+                // Убедитесь, что здесь указан правильный URL вашего репозитория
+                git 'https://github.com/Stepan714/PDRIS_Sber.git'
             }
         }
 
@@ -57,4 +58,3 @@ pipeline {
         }
     }
 }
-
