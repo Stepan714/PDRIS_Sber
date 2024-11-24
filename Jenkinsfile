@@ -25,11 +25,14 @@ pipeline {
 
         stage('Unit Tests') {
             steps {
-                sh 'mvn test'
+                script {
+                    sh 'pip install -r requirements.txt'
+                    sh 'pytest --junitxml=report.xml'
+                }
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
+                    junit 'report.xml'
                 }
             }
         }
