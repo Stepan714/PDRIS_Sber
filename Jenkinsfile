@@ -13,6 +13,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
+                sh 'ls -la'
             }
         }
 
