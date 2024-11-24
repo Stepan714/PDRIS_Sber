@@ -10,12 +10,11 @@ pipeline {
     }
 
     stages {
-         stage('Checkout') {
-             steps {
-                 git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
-             }
-         }
-
+        stage('Checkout') {
+            steps {
+                git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
+            }
+        }
 
         stage('Build') {
             steps {
@@ -36,7 +35,13 @@ pipeline {
 
         stage('Integration Tests') {
             steps {
-                sh 'newman run postman_collection.json'
+                script {
+                    if (fileExists('postman_collection.json')) {
+                        sh 'newman run postman_collection.json'
+                    } else {
+                        error 'Postman collection not found!'
+                    }
+                }
             }
         }
 
