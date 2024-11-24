@@ -1,0 +1,44 @@
+
+- hosts: webservers
+  become: yes
+  tasks:
+    - name: Обновить кеш пакетов
+      apt:
+        update_cache: yes
+
+    - name: Убедиться, что Docker установлен
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Убедиться, что Docker запущен
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Скачать Docker-образ
+      docker_image:
+        name: my-app-image
+        tag: latest
+        source: pull
+
+    - name: Остановить существующий контейнер
+      docker_container:
+        name: app
+        state: stopped
+      ignore_errors: yes
+
+    - name: Удалить существующий контейнер
+      docker_container:
+        name: app
+        state: absent
+      ignore_errors: yes
+
+    - name: Запустить новый контейнер
+      docker_container:
+        name: app
+        image: my-app-image:latest
+        state: started
+        ports:
+          - "80:80"
