@@ -10,6 +10,18 @@ pipeline {
     }
 
     stages {
+        stage('Setup Python') {
+            steps {
+                sh '''
+                if ! command -v python3 &> /dev/null; then
+                    echo "Python3 не установлен. Устанавливаем..."
+                    sudo apt update
+                    sudo apt install -y python3 python3-pip
+                fi
+                '''
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
