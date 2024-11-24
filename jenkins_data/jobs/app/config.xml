@@ -1,0 +1,103 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1468.vcf4f5ee92395">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2218.v56d0cda_37c72"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2218.v56d0cda_37c72">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3996.va_f5c1799f978">
+    <script>pipeline {
+    agent any
+
+    tools {
+        maven &apos;Maven 3&apos;
+    }
+
+    environment {
+        SONAR_URL = &apos;http://sonarqube:9000&apos;
+    }
+
+    stages {
+         stage(&apos;Checkout&apos;) {
+             steps {
+                 git branch: &apos;lab4_v2&apos;, url: &apos;https://github.com/Stepan714/PDRIS_Sber.git&apos;
+             }
+         }
+
+
+        stage(&apos;Build&apos;) {
+            steps {
+                sh &apos;mvn clean package&apos;
+            }
+        }
+
+        stage(&apos;Unit Tests&apos;) {
+            steps {
+                sh &apos;mvn test&apos;
+            }
+            post {
+                always {
+                    junit &apos;**/target/surefire-reports/*.xml&apos;
+                }
+            }
+        }
+
+        stage(&apos;Integration Tests&apos;) {
+            steps {
+                sh &apos;newman run postman_collection.json&apos;
+            }
+        }
+
+        stage(&apos;SonarQube Analysis&apos;) {
+            steps {
+                withSonarQubeEnv(&apos;SonarQube&apos;) {
+                    sh &apos;mvn sonar:sonar&apos;
+                }
+            }
+        }
+
+        stage(&apos;Allure Report&apos;) {
+            steps {
+                allure([
+                    results: [[path: &apos;**/target/allure-results&apos;]]
+                ])
+            }
+        }
+
+        stage(&apos;Deploy&apos;) {
+            steps {
+                script {
+                    if (env.DEPLOY_METHOD == &apos;ansible&apos;) {
+                        ansiblePlaybook(
+                            playbook: &apos;ansible/deploy.yml&apos;,
+                            inventory: &apos;ansible/inventory&apos;
+                        )
+                    } else {
+                        sh &apos;docker-compose up -d&apos;
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo &apos;Build and deployment successful!&apos;
+        }
+        failure {
+            echo &apos;Build or deployment failed.&apos;
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
