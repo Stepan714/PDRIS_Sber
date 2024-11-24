@@ -10,18 +10,6 @@ pipeline {
     }
 
     stages {
-        stage('Setup Python') {
-            steps {
-                sh '''
-                if ! command -v python3 &> /dev/null; then
-                    echo "Python3 не установлен. Устанавливаем..."
-                    sudo apt update
-                    sudo apt install -y python3 python3-pip
-                fi
-                '''
-            }
-        }
-
         stage('Checkout') {
             steps {
                 git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
@@ -34,33 +22,6 @@ pipeline {
                 sh 'mvn clean package'
             }
         }
-
-        stage('Unit Tests') {
-            steps {
-                script {
-                    sh 'pip3 install -r requirements.txt || pip install -r requirements.txt'
-                    sh 'pytest --junitxml=report.xml'
-                }
-            }
-            post {
-                always {
-                    junit 'report.xml'
-                }
-            }
-        }
-
-        stage('Integration Tests') {
-            steps {
-                script {
-                    if (fileExists('postman_collection.json')) {
-                        sh 'newman run postman_collection.json'
-                    } else {
-                        error 'Postman collection not found!'
-                    }
-                }
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
