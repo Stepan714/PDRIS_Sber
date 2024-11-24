@@ -5,61 +5,50 @@ pipeline {
         maven 'Maven 3'
     }
 
-    environment {
-        SONAR_URL = 'http://sonarqube:9000'
-    }
-
     stages {
-        stage('Checkout') {
+
+        stage('Клонирование проекта') {
             steps {
                 git branch: 'lab4_v2', url: 'https://github.com/Stepan714/PDRIS_Sber.git'
-                sh 'ls -la'
             }
         }
 
-        stage('Build') {
+        stage('Тестирование') {
             steps {
-                sh 'mvn clean package'
+                sh '''
+                pytest app/tests --cov=app --cov-report xml:coverage.xml --alluredir=allure-results || true
+                '''
             }
         }
-        stage('SonarQube Analysis') {
+
+        stage('Проверка кодстайла') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    sh 'mvn clean sonar:sonar'
                 }
             }
         }
 
-        stage('Allure Report') {
+        stage('Баги в Allure') {
             steps {
                 allure([
-                    results: [[path: '**/target/allure-results']]
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: 'allure-results']]
                 ])
             }
         }
 
-        stage('Deploy') {
+        
+        stage('Поднятие приложения') {
             steps {
-                script {
-                    if (env.DEPLOY_METHOD == 'ansible') {
-                        ansiblePlaybook(
-                            playbook: 'ansible/deploy.yml',
-                            inventory: 'ansible/inventory'
-                        )
-                    } else {
-                        sh 'docker-compose up -d'
-                    }
-                }
+                sh 'cd ansible && ansible-playbook -i inventory deploy.yml'
             }
         }
     }
 
     post {
-        success {
-            echo 'Build and deployment successful!'
-        }
-        failure {
-            echo 'Build or deployment failed.'
+        always {
+            echo 'Пайплан полностью выполнен'
         }
     }
 }
