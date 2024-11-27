@@ -1,10 +1,10 @@
-FROM alpine:3.11
+FROM python:3.9-alpine
 
-RUN apk add --no-cache openssh-client ansible git sshpass python3 py3-pip && \
-    pip3 install docker
+WORKDIR /app
 
-WORKDIR /ansible
+COPY . /app
 
-COPY . .
+RUN apk add --no-cache openssh-client git sshpass && \
+    pip install ansible docker
 
-CMD ["ansible-playbook", "DockerPlaybook.yml", "-i", "inventory.hosts"]
+CMD ["sleep", "infinity"]

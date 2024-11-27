@@ -1,13 +1,19 @@
 ---
-- name: Deploy application
+- name: Deploy Application
   hosts: localhost
   tasks:
-    - name: Run Docker container
-      docker_container:
-        name: app
-        image: task2
-        ports:
-         - "80:80"
-        command: python3 main.py
+    - name: Install Python dependencies
+      pip:
+        requirements: /opt/app/src/requirements.txt
+        virtualenv: /opt/app/venv
 
+    - name: Copy application files
+      copy:
+        src: /opt/app/src/
+        dest: /app/
+        remote_src: no
 
+    - name: Run application
+      shell: /opt/app/venv/bin/gunicorn -b 0.0.0.0:80 main:app
+      args:
+        chdir: /app
