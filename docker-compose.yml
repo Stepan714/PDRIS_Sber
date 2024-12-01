@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+  ansible:
+    build:
+      context: ./ansible
+    command: ansible-playbook -i inventories/servers.yml playbook.yml
+    volumes:
+      - ./ansible:/ansible
+      - /var/run/docker.sock:/var/run/docker.sock # Доступ к Docker API для управления контейнерами
+
+  flask_app:
+    image: python:3.12
+    volumes:
+      - shared_app:/app
+    working_dir: /app
+    expose:
+      - "80"
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - shared_app:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+volumes:
+  shared_app:
+
