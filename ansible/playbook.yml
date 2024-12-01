@@ -1,0 +1,23 @@
+- name: Deploy application and configure Nginx
+  hosts: localhost
+  tasks:
+    - name: Install dependencies
+      pip:
+        requirements: /ansible/app/requirements.txt
+
+    - name: Copy application files to shared volume
+      copy:
+        src: /ansible/app/
+        dest: /app/
+
+    - name: Replace Nginx configuration
+      copy:
+        src: /ansible/templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      delegate_to: nginx
+      notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      command: docker exec nginx nginx -s reload
+

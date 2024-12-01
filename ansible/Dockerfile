@@ -1,10 +1,14 @@
-FROM python:3.9-alpine
+FROM alpine:3.11
 
-WORKDIR /app
+RUN apk add --no-cache openssh-client ansible git sshpass
 
-COPY . /app
+# Скопируйте файлы Ansible, если они находятся на том же уровне
+COPY playbook.yml /ansible/playbook.yml
+COPY inventories /ansible/inventories
+COPY templates /ansible/templates
+COPY app /ansible/app
 
-RUN apk add --no-cache openssh-client git sshpass && \
-    pip install ansible docker
+WORKDIR /ansible
 
-CMD ["sleep", "infinity"]
+CMD [""]
+
