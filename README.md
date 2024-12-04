@@ -8,7 +8,7 @@
 `docker build -t your-dockerhub-username/flask-app .
 docker push your-dockerhub-username/flask-app`
 
-Изменить файл: , поставить свой your-dockerhub-username
+Изменить файл: k8s/flask-deployment.yaml, поставить свой your-dockerhub-username
 
 `minikube start`
 
