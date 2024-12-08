@@ -11,9 +11,9 @@
         <sonar.projectKey>go-coverage</sonar.projectKey>
         <sonar.projectName>go-coverage</sonar.projectName>
         <sonar.language>go</sonar.language>
-        <sonar.sources>src/internal/app/app.go</sonar.sources>
-        <sonar.tests>src/internal/app/app_test.go</sonar.tests>
-        <sonar.go.coverage.reportPaths>src/internal/app/coverage.out</sonar.go.coverage.reportPaths>
+        <sonar.sources>src/server/internal/server/app.go</sonar.sources>
+        <sonar.tests>src/server/internal/server/app_test.go</sonar.tests>
+        <sonar.go.coverage.reportPaths>src/server/internal/server/coverage.out</sonar.go.coverage.reportPaths>
     </properties>
 
     <build>
